@@ -41,9 +41,10 @@ const upload = multer({ storage });
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-let whatsappReady = false;
+
 
 let whatsappReady = false;
+const chromePath =
 process.env.PUPPETEER_EXECUTABLE_PATH ||
   '/opt/render/project/src/.puppeteer-cache/chrome/linux-146.0.7680.153/chrome-linux64/chrome';
 
