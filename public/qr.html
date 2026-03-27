@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR WhatsApp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      text-align: center;
+      padding: 40px;
+    }
+    .card {
+      background: #fff;
+      max-width: 500px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    }
+    img {
+      max-width: 300px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Conectar WhatsApp</h1>
+    <p id="estado">Cargando...</p>
+    <div id="qrBox"></div>
+  </div>
+
+  <script>
+    async function cargarQR() {
+      try {
+        const res = await fetch('/api/qr');
+        const data = await res.json();
+
+        const estado = document.getElementById('estado');
+        const qrBox = document.getElementById('qrBox');
+
+        if (data.ready) {
+          estado.textContent = 'WhatsApp conectado correctamente';
+          qrBox.innerHTML = '';
+          return;
+        }
+
+        if (data.qr) {
+          estado.textContent = 'Escanea este QR con tu WhatsApp';
+          qrBox.innerHTML = `<img src="${data.qr}" alt="QR WhatsApp">`;
+          return;
+        }
+
+        if (data.status === 'authenticated') {
+          estado.textContent = 'QR escaneado. Esperando conexión...';
+          qrBox.innerHTML = '';
+          return;
+        }
+
+        estado.textContent = 'Esperando QR...';
+        qrBox.innerHTML = '';
+      } catch (error) {
+        document.getElementById('estado').textContent = 'Error cargando QR';
+      }
+    }
+
+    cargarQR();
+    setInterval(cargarQR, 3000);
+  </script>
+</body>
+</html>

@@ -4,6 +4,8 @@ const fs = require('fs');
 const XLSX = require('xlsx');
 const multer = require('multer');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
+
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 
 const app = express();
@@ -44,6 +46,8 @@ app.use(express.json());
 
 
 let whatsappReady = false;
+let currentQrBase64 = null;
+let qrStatus = 'iniciando';
 const chromePath =
 process.env.PUPPETEER_EXECUTABLE_PATH ||
   '/opt/render/project/src/.puppeteer-cache/chrome/linux-146.0.7680.153/chrome-linux64/chrome';
@@ -69,18 +73,31 @@ const client = new Client({
   }
 });
 
-client.on('qr', (qr) => {
+client.on('qr', async (qr) => {
   console.log('\n📲 Escanea este QR con tu WhatsApp:\n');
   qrcode.generate(qr, { small: true });
+
+  currentQrBase64 = await QRCode.toDataURL(qr);
+  qrStatus = 'qr';
+  whatsappReady = false;
 });
 
 client.on('ready', () => {
   whatsappReady = true;
+  currentQrBase64 = null;
+  qrStatus = 'ready';
   console.log('✅ WhatsApp conectado correctamente');
+});
+
+client.on('authenticated', () => {
+  qrStatus = 'authenticated';
+  console.log('🔐 WhatsApp autenticado');
 });
 
 client.on('disconnected', () => {
   whatsappReady = false;
+  currentQrBase64 = null;
+  qrStatus = 'disconnected';
   console.log('⚠️ WhatsApp desconectado');
 });
 
@@ -142,6 +159,14 @@ app.get('/api/descargar-plantilla', (req, res) => {
     console.error('Error creando plantilla:', error);
     res.status(500).json({ error: 'No se pudo descargar la plantilla' });
   }
+});
+
+app.get('/api/qr', (req, res) => {
+  res.json({
+    ready: whatsappReady,
+    status: qrStatus,
+    qr: currentQrBase64
+  });
 });
 
 // Subir Excel desde la PC
