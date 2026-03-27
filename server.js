@@ -46,7 +46,16 @@ let whatsappReady = false;
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
-    headless: false
+    headless: true,
+    executablePath: chromePath,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process'
+    ]
   }
 });
 
