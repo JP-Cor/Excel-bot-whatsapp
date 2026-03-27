@@ -43,7 +43,16 @@ app.use(express.json());
 
 let whatsappReady = false;
 
+let whatsappReady = false;
+process.env.PUPPETEER_EXECUTABLE_PATH ||
+  '/opt/render/project/src/.puppeteer-cache/chrome/linux-146.0.7680.153/chrome-linux64/chrome';
+
+console.log('Chrome path:', chromePath);
+console.log('Chrome exists:', fs.existsSync(chromePath));
+
 const client = new Client({
+
+  
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
