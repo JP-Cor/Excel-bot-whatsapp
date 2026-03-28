@@ -15,9 +15,11 @@ const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const EXCEL_PATH = path.join(DATA_DIR, 'contactos.xlsx');
+const AUTH_DIR = path.join(__dirname, '.wwebjs_auth');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
 
 // Si no existe el Excel principal, crear uno vacío con encabezados
 if (!fs.existsSync(EXCEL_PATH)) {
@@ -56,8 +58,8 @@ console.log('Chrome path:', chromePath);
 console.log('Chrome exists:', fs.existsSync(chromePath));
 
 const client = new Client({
-authStrategy: new LocalAuth({
-    dataPath: './.wwebjs_auth' // 🔥 importante
+  authStrategy: new LocalAuth({
+    dataPath: '/opt/render/project/src/.wwebjs_auth'
   }),
   puppeteer: {
     headless: true,
@@ -83,23 +85,29 @@ client.on('qr', async (qr) => {
   whatsappReady = false;
 });
 
-client.on('ready', () => {
-  whatsappReady = true;
-  currentQrBase64 = null;
-  qrStatus = 'ready';
-  console.log('✅ WhatsApp conectado correctamente');
-});
+
 
 client.on('authenticated', () => {
-  qrStatus = 'authenticated';
   console.log('🔐 WhatsApp autenticado');
 });
 
-client.on('disconnected', () => {
+client.on('auth_failure', (msg) => {
+  console.error('❌ Falló la autenticación:', msg);
+});
+
+client.on('loading_screen', (percent, message) => {
+  console.log('⏳ Cargando:', percent, message);
+});
+
+client.on('change_state', (state) => {
+  console.log('🔄 Estado de WhatsApp:', state);
+});
+
+client.on('disconnected', (reason) => {
   whatsappReady = false;
   currentQrBase64 = null;
   qrStatus = 'disconnected';
-  console.log('⚠️ WhatsApp desconectado');
+  console.log('⚠️ WhatsApp desconectado:', reason);
 });
 
 client.initialize();
