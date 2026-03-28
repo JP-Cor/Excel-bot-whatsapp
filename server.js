@@ -56,9 +56,9 @@ console.log('Chrome path:', chromePath);
 console.log('Chrome exists:', fs.existsSync(chromePath));
 
 const client = new Client({
-
-  
-  authStrategy: new LocalAuth(),
+authStrategy: new LocalAuth({
+    dataPath: './.wwebjs_auth' // 🔥 importante
+  }),
   puppeteer: {
     headless: true,
     executablePath: chromePath,
@@ -72,6 +72,7 @@ const client = new Client({
     ]
   }
 });
+
 
 client.on('qr', async (qr) => {
   console.log('\n📲 Escanea este QR con tu WhatsApp:\n');
